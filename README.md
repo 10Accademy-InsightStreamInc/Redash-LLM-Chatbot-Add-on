@@ -103,7 +103,10 @@ Acknowledgments: Thanks to 10 Academy for support and resources.
 v1.0.0 - Initial release with EDA, enviroment setup and core functionality for querying via natural language integrated within Redash.
 
 ## Project Tasks
-
+- Pre Tasks
+    - Project Understanding
+    - Environment setup
+    - EDA analysis
 - Task 1: Schema Design - Develop a database schema suitable for handling complex YouTube data analytics.
 - Task 2: Backend API Development - Build the backend to process natural language queries and convert them into SQL commands.
 - Task 3: Frontend Integration - Implement a user-friendly interface within Redash to facilitate interaction with the chat add-on.
