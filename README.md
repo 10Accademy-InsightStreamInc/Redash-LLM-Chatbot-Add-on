@@ -26,10 +26,9 @@ Organizations require robust tools to navigate vast amounts of data for competit
 Copy code
 git clone https://github.com/10Accademy-InsightStreamInc/Redash-LLM-Chatbot-Add-on
 ```
-## Environment Setup
-- Navigate to the project directory.
+1. **Navigate to the project directory.**
 
-**Set Up Python Environment:**
+2. **Set Up Python Environment:**
 
     ```bash
     python -m venv your_env_name
@@ -37,7 +36,7 @@ git clone https://github.com/10Accademy-InsightStreamInc/Redash-LLM-Chatbot-Add-
 
     Replace `your_env_name` with the desired name for your environment.
     
-    **Activate the Environment:**
+3. **Activate the Environment:**
 
     - On Windows:
 
