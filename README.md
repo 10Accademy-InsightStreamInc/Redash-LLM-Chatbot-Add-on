@@ -26,7 +26,7 @@ Organizations require robust tools to navigate vast amounts of data for competit
     git clone https://github.com/10Accademy-InsightStreamInc/Redash-LLM-Chatbot-Add-on
     ```
 3. **Navigate to the project directory.**
-    Clone the Forked Repository and navigate to the directory
+    - Clone the Forked Repository and navigate to the directory
 
 4. **Set Up Python Environment:**
 
