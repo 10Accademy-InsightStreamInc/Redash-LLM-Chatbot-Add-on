@@ -24,10 +24,32 @@ Organizations require robust tools to navigate vast amounts of data for competit
 ## Clone the Repository:
 ```bash
 Copy code
-git clone https://github.com/your-repository-url/redash-chat-addon.git
+git clone https://github.com/10Accademy-InsightStreamInc/Redash-LLM-Chatbot-Add-on
 ```
 ## Environment Setup
 - Navigate to the project directory.
+
+**Set Up Python Environment:**
+
+    ```bash
+    python -m venv your_env_name
+    ```
+
+    Replace `your_env_name` with the desired name for your environment.
+    
+    **Activate the Environment:**
+
+    - On Windows:
+
+    ```bash
+    .\your_env_name\scripts\activate
+    ```
+
+    - On macOS/Linux:
+
+    ```bash
+    source your_env_name/bin/activate
+    ```
 
 ### Install dependencies
 ```bash
