@@ -52,7 +52,7 @@ Input queries like, "What are the peak viewership times for our latest videos?" 
 ## Contributing
 To contribute to this project:
 
-## Fork the repository.
+## Fork the main repository.
 - Create your feature branch 
 ```bash 
 git checkout -b feature/your-feature 
