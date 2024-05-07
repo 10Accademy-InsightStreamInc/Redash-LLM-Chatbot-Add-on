@@ -16,19 +16,18 @@ Organizations require robust tools to navigate vast amounts of data for competit
 
 # Installation Instructions
 
-## Prerequisites
+1. **Prerequisites**
 - Docker and docker-compose installed.
 - Node.js and npm for running the frontend.
 - Python environment for backend setup.
 
-## Clone the Repository:
+2. **Clone the Repository**
 ```bash
-Copy code
 git clone https://github.com/10Accademy-InsightStreamInc/Redash-LLM-Chatbot-Add-on
 ```
-1. **Navigate to the project directory.**
+3. **Navigate to the project directory.**
 
-2. **Set Up Python Environment:**
+4. **Set Up Python Environment:**
 
     ```bash
     python -m venv your_env_name
@@ -36,7 +35,7 @@ git clone https://github.com/10Accademy-InsightStreamInc/Redash-LLM-Chatbot-Add-
 
     Replace `your_env_name` with the desired name for your environment.
     
-3. **Activate the Environment:**
+5. **Activate the Environment:**
 
     - On Windows:
 
