@@ -22,9 +22,9 @@ Organizations require robust tools to navigate vast amounts of data for competit
 - Python environment for backend setup.
 
 2. **Clone the Repository**
-```bash
-git clone https://github.com/10Accademy-InsightStreamInc/Redash-LLM-Chatbot-Add-on
-```
+    ```bash
+    git clone https://github.com/10Accademy-InsightStreamInc/Redash-LLM-Chatbot-Add-on
+    ```
 3. **Navigate to the project directory.**
 
 4. **Set Up Python Environment:**
@@ -51,13 +51,13 @@ git clone https://github.com/10Accademy-InsightStreamInc/Redash-LLM-Chatbot-Add-
 
 ### Install dependencies
 ```bash
-Copy code
 npm install
+```
+```bash
 pip install -r requirements.txt
 ```
 ### Start the application using Docker
 ```bash
-Copy code
 docker-compose up --build
 ```
 ## Usage Guidelines
