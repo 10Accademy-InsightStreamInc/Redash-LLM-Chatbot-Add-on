@@ -21,7 +21,7 @@ Organizations require robust tools to navigate vast amounts of data for competit
 - Node.js and npm for running the frontend.
 - Python environment for backend setup.
 
-2. **Clone the Repository**
+2. **Fork the Repository**
     ```bash
     git clone https://github.com/10Accademy-InsightStreamInc/Redash-LLM-Chatbot-Add-on
     ```
