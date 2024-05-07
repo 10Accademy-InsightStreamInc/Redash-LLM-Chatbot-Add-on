@@ -80,7 +80,7 @@ git checkout -b feature/your-feature
 ```
 - Commit your changes 
 ```bash 
-git commit -am 'Add some feature
+git commit -am 'Add some feature'
 ```
 - Push to the branch 
 ```bash 
