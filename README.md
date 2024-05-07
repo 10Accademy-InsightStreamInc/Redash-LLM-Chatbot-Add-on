@@ -1,6 +1,18 @@
 # Overview - Redash-LLM-Chatbot-Add-on
 A Redash add-on which integrates PostgreSQL, and OpenAI's GPT with natural language processing and SQL generation to democratize SQL for a non-technical user to seamlessly fetch and visualize data using LLM and query generation.
 
+Navigation
+- [Project Title](#project-title)
+- [Description](#description)
+- [Business Need](#business-need)
+- [Installation Instructions](#installation-instructions)
+- [Usage Guidelines](#usage-guidelines)
+- [Contributing](#contributing)
+- [License](#license)
+- [Authors and Acknowledgment](#authors-and-acknowledgment)
+- [Changelog](#changelog)
+- [Project Tasks](#project-tasks)
+
 # Project Title
 Redash-LLM-Chatbot-Add-on for Advanced Data Analytics and Visualization
 
