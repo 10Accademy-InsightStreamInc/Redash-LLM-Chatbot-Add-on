@@ -53,3 +53,10 @@ class ZipExtractor:
                 #merged_data.to_sql(subdirectory_name, conn_engine, if_exists="replace", index=False)
         print("Data merge and write completed.")
         return dict_merged_data
+    
+    # a function that accepts dictionary of merged dataframes and writes them to the database
+    def write_to_db(self, dict_merged_data, conn_engine):
+        for table_name, merged_data in dict_merged_data.items():
+            # Write the merged data to a database table
+            merged_data.to_sql(table_name, conn_engine, if_exists="replace", index=False)
+        print("Data write to database completed.")
