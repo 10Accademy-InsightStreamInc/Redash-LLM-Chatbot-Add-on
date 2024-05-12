@@ -1,5 +1,6 @@
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, MetaData, inspect, text
+from sqlalchemy.orm import sessionmaker
 import os
 # from dotenv import load_dotenv
 import sys
@@ -13,13 +14,13 @@ class DatabaseLoader:
         """
         # Load environment variables from the .env file
         # load_dotenv()
-        # postgres://redash:cKY0oBb7ye17X1ysvMIbehfkyBTvSjls@dpg-cotrfcv109ks73d3v500-a.oregon-postgres.render.com/redash_llm_db
+        # postgres://abuki:RO2Wa1UIBqV0fHU6Wu1SbYQvN2HJx0Rn@dpg-cp083no21fec73fvqci0-a.oregon-postgres.render.com/redash_llm_db_cmt5
         # Fetch database credentials from environment variables
-        self.username = 'redash' # os.getenv("DB_USERNAME")
-        self.password = 'cKY0oBb7ye17X1ysvMIbehfkyBTvSjls' # os.getenv("DB_PASSWORD")
-        self.host = 'dpg-cotrfcv109ks73d3v500-a.oregon-postgres.render.com' # os.getenv("DB_HOST")
+        self.username = 'abuki' # os.getenv("DB_USERNAME")
+        self.password = 'RO2Wa1UIBqV0fHU6Wu1SbYQvN2HJx0Rn' # os.getenv("DB_PASSWORD")
+        self.host = 'dpg-cp083no21fec73fvqci0-a.oregon-postgres.render.com' # os.getenv("DB_HOST")
         self.port = 5432 # os.getenv("DB_PORT")
-        self.database = 'redash_llm_db' # os.getenv("DB_DATABASE")
+        self.database = 'redash_llm_db_cmt5' # os.getenv("DB_DATABASE")
 
         # Check if any credentials are missing
         if None in (self.username, self.password, self.host, self.port, self.database, self.host):
@@ -105,7 +106,30 @@ class DatabaseLoader:
         if self.connection:
             self.connection.close()
             print("Disconnected from the database.")
-    
+    def drop_all_tables(self):
+        """
+        Drops all tables in the database.
+
+        This function drops all tables in the database using the connection object.
+        If the operation is successful, it prints a message indicating that all tables have been dropped.
+        If an exception occurs during the table dropping process, it prints an error message with the specific exception details.
+
+        Parameters:
+            self (DatabaseConnection): The instance of the DatabaseConnection class.
+
+        Returns:
+            None
+        """
+        try:
+            inspector = inspect(self.engine)
+            tables = inspector.get_table_names()
+            for table in tables:
+                print(f"Dropping table: {table}")
+                self.connection.execute(text(f'DROP TABLE IF EXISTS "{table}"'))
+
+        except Exception as e:
+            print(f"Error dropping tables: {str(e)}")
+
     def add_data_to_table(self, df: pd.DataFrame, table_name: str):
         """
         Adds data to a table in the database.
