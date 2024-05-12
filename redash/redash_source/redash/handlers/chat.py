@@ -1,4 +1,6 @@
 from flask import request, jsonify
+import json
+from sqlalchemy import text
 from redash.handlers.base import (
     BaseResource
 )
@@ -20,11 +22,11 @@ client = OpenAI(
   api_key=VARIABLE_KEY
 )
 # postgres://redash:cKY0oBb7ye17X1ysvMIbehfkyBTvSjls@dpg-cotrfcv109ks73d3v500-a.oregon-postgres.render.com/
-username = "redash"
-password = "cKY0oBb7ye17X1ysvMIbehfkyBTvSjls"
-host = "dpg-cotrfcv109ks73d3v500-a.oregon-postgres.render.com"
+username = "abuki"
+password = "RO2Wa1UIBqV0fHU6Wu1SbYQvN2HJx0Rn"
+host = "dpg-cp083no21fec73fvqci0-a.oregon-postgres.render.com"
 port = 5432
-database = "redash_llm_db"
+database = "redash_llm_db_cmt5"
 
 db_conn_str = f"postgresql://{username}:{password}@{host}:{port}/{database}"
 class ChatResource(BaseResource):
@@ -54,33 +56,25 @@ class ChatResource(BaseResource):
         else:
             new_table_column_string = new_table_column_string + key + ' is: ' + value
 
-    def get_data_source(self):
-        if self.current_user.has_permission("admin"):
-            data_sources = models.DataSource.all(self.current_org)
+    def ask_database(self, query):
+        """Function to query Postgres database with a provided SQL query."""
+        try:
+            # Assuming 'db.connection' is your SQLAlchemy connection
+            result = self.engine.connect().execute(text(query)).fetchall()
+            return result
+        except Exception as e:
+            results = f"query failed with error: {e}"
+        return results
+
+    def execute_function_call(self, message):
+        if message["tool_calls"][0]["function"]["name"] == "ask_database":
+            query = json.loads(message["tool_calls"][0]["function"]["arguments"])["query"]
+            print("The query is: ", query)
+            results = self.ask_database(f'{query}')
         else:
-            data_sources = models.DataSource.all(self.current_org, group_ids=self.current_user.group_ids)
-
-        response = {}
-        for ds in data_sources:
-            if ds.id in response:
-                continue
-
-            try:
-                d = ds.to_dict()
-                d["view_only"] = all(project(ds.groups, self.current_user.group_ids).values())
-                response[ds.id] = d
-            except AttributeError:
-                print("Error with DataSource#to_dict (data source id: %d)", ds.id)
-
-        self.record_event(
-            {
-                "action": "list",
-                "object_id": "admin/data_sources",
-                "object_type": "datasource",
-            }
-        )
-        sort = sorted(list(response.values()), key=lambda d: d["name"].lower())
-        return sort
+            results = f"Error: function {message['tool_calls'][0]['function']['name']} does not exist"
+        return results
+    
     def post(self):
         try:
             value = request.get_json()
@@ -89,69 +83,51 @@ class ChatResource(BaseResource):
                 model="gpt-3.5-turbo",
                 messages = [
                     {"role": "system",
-                        "content": f"You are a helpful assistant who generates SQL queries on the database and responds from the database schema provided only\
-                        SQL should be written using this table and column data from database schema: {self.new_table_column_string}\
-                        All the tables and columns MUST ALWAYS be in double quotes \
+                        "content": f'''You are a helpful assistant who generates SQL queries on the database and responds from the database schema provided only\
+                        SQL should be written using this table and column names from database schema: {self.new_table_column_string}\
+                        Table Names or Column Names Referenced anywhere in your SQL Query when writing SQL MUST ALWAYS be in double quotes EVEN IF THEY ARE A SINGLE WORD, \
                         The Database you will be writting SQL queries for is: postgres \
                         You are always to the point and ALWAYS generate the SQL query and no additional explanation or text\
                         Generate only SQL syntax when prompted about any inquiries regarding SQL queries.\
                         The query should be returned in plain text, not in JSON \
                         Output should be a fully formed SQL query.\
+                        Please YOU MUST USE DOUBLE QUOTES like "" in FROM, SELECT, WHERE, GROUP BY, ORDER BY, LIMIT and  all other clauses and on \
+                        all function in SQL on column names such as SUM() inside MUST BE CALLED WITH COLUMNS IN DOUBLE QUOTES for example if the Column name to be summed is City then use SUM("City") and others builtin SQL functions ARE MUST TO ADD QUOTES OR DONT ANSWER. \
+                        Example Like this: 'SELECT "City name", SUM("Views by Date") AS total_views, SUM("Total Watch time (hours) by Citiy name") AS total_watch_time FROM "Cities" GROUP BY "City name"'
                         Do not use any kind of formatting on your response query such as newlines or indentation finish everything in one line. \
-                        Don't complicate things. Generate only SQL syntax when prompted about any inquiries regarding SQL queries."},
-                    {"role": "user", "content": f"{question}"}
-                    # "Give me all cities names with there total views and watch time"
+                        Don't complicate things. Generate only SQL syntax when prompted about any inquiries regarding SQL queries.'''},
+                    {"role": "user", "content": f"{question}"},
+                ],
+                functions = [
+                    {"type": "function",
+                        "function": {
+                            "name": "ask_database",
+                            "description": "Use this function to answer user questions about music. Input should be a fully formed SQL query.",
+                            "parameters": {
+                                "type": "object",
+                                "properties": {
+                                    "query": {
+                                        "type": "string",
+                                        "description": f"""
+                                                SQL query extracting info to answer the user's question.
+                                                SQL should be written using this database schema:
+                                                {self.new_table_column_string}
+                                                The query should be returned in plain text, not in JSON.
+                                                """,
+                                    }
+                                },
+                                "required": ["query"],
+                            },
+                        }
+                    }
                 ]
+                    # "Give me all cities names with there total views and watch time"
             )
-            answer = completion.choices[0].message.content
-            # payload = {
-            #     "data_source_id": 1,
-            #     "name": "Abuki's Generated Query",
-            #     "query": answer,
-            #     "description": "Query generated by the OpenAI assistant with the help of abuki",
-            #     "options": None
-            # }
-            # query_def = payload
-            # query_def["query_text"] = query_def.pop("query")
-            # query_def["user"] = self.current_user
-            # query_def["data_source"] = models.DataSource.get_by_id_and_org(payload.pop("data_source_id"), self.current_org)
-            # query_def["org"] = self.current_org
-            # query_def["is_draft"] = True
-            # query = models.Query.create(**query_def)
-            # models.db.session.add(query)
-            # models.db.session.commit()
-
-            # # Assuming you have a post method to handle API requests to Redash
-            # # Replace this with the actual endpoint and method for creating queries
-            # # res = self.post('queries', payload)
-            # self.record_event({"action": "create", "object_id": query.id, "object_type": "query"})
-
-            # q = QuerySerializer(query, with_visualizations=True).serialize()
-
-            response_data = {"answer": f"{answer}"}
+            message = completion.choices[0]["message"]
+            query = json.loads(message["tool_calls"][0]["function"]["arguments"])["query"]
+            answer = self.execute_function_call(message)
+            response_data = {"answer": f"The Query is :: {query} \n The Answer is :: {answer}"}
             return jsonify(response_data), 200
         except Exception as error:
             print(error)
             return jsonify({"error": "An error occurred"}), 500
-        
-    # def chat_completion_request(messages, tools=None, tool_choice=None, model=GPT_MODEL):
-    #     headers = {
-    #         "Content-Type": "application/json",
-    #         "Authorization": "Bearer " + openai.api_key,
-    #     }
-    #     json_data = {"model": model, "messages": messages}
-    #     if tools is not None:
-    #         json_data.update({"tools": tools})
-    #     if tool_choice is not None:
-    #         json_data.update({"tool_choice": tool_choice})
-    #     try:
-    #         response = requests.post(
-    #             "https://api.openai.com/v1/chat/completions",
-    #             headers=headers,
-    #             json=json_data,
-    #         )
-    #         return response.json()
-    #     except Exception as e:
-    #         print("Unable to generate ChatCompletion response")
-    #         print(f"Exception: {e}")
-    #         return e
