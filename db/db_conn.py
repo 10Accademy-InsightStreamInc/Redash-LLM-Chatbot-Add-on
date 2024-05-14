@@ -145,6 +145,32 @@ class DatabaseLoader:
             None
         """
         df.to_sql(table_name, self.engine, if_exists='append', index=False)
+    def get_table_column_names(self):
+        """
+        This function retrieves the names of all tables in the database and their corresponding columns.
+        It returns a dictionary where the keys are the table names and the values are lists of column
+        dictionaries. Each column dictionary contains information about the column, such as its name,
+        data type, and whether it is nullable.
 
+        Parameters:
+            self (DatabaseConnection): The instance of the DatabaseConnection class.
+
+        Returns:
+            dict: A dictionary where the keys are table names and the values are lists of column dictionaries.
+        """
+        # Initialize an empty dictionary to store the table names and their corresponding columns.
+        table_column_dict = {}
+
+        # Iterate over each table in the database.
+        for table in self.inspector.get_table_names():
+            # Retrieve the columns of the current table.
+            columns = self.inspector.get_columns(table)
+
+            # Add the table name and its corresponding columns to the dictionary.
+            table_column_dict[table] = columns
+
+        return table_column_dict
+
+    
     def __del__(self):
         self.close()
