@@ -219,5 +219,27 @@ class DatabaseLoader:
 
         # Return the modified dictionary
         return table_column_dict
+    
+    def make_string_for_llm_understanding(self, table_column_dict: dict):
+        # Initialize an empty string to store the result
+        new_table_column_string = ""
+        
+        # Iterate over each key-value pair in the dictionary
+        for key, value in table_column_dict.items():
+            # Check if the value is a list (indicating multiple columns for a table)
+            # If it is, join the column names into a comma-separated string and append it to the result string
+            # If it's not a list, append the table name followed by its value to the result string
+            if type(value) == list:
+                # Join the column names into a comma-separated string
+                column_names_string = ', '.join(value)
+                
+                # Append the table name, the phrase 'has Columns:', the column names, and the phrase 'and' to the result string
+                new_table_column_string += f'{key} has Columns: {column_names_string} and \n'
+            else:
+                # Append the table name, the phrase 'is:', and the value to the result string
+                new_table_column_string += f'{key} is: {value}\n'
+        
+        # Return the result string
+        return new_table_column_string  
     def __del__(self):
         self.close()
