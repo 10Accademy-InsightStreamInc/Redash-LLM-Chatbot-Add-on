@@ -171,6 +171,30 @@ class DatabaseLoader:
 
         return table_column_dict
 
-    
+
+    def clean_inspector_db(self, table_column_dict: dict):
+        """
+        This function takes a dictionary of table names and their corresponding column names as input.
+        It modifies the dictionary by removing all the key-value pairs except for the column name and 
+        renaming the key to be the table name and the value to be the column name. 
+        
+        Parameters:
+            self (DatabaseConnection): The instance of the DatabaseConnection class.
+            table_column_dict (dict): A dictionary where the keys are table names and the values are lists of column names.
+        
+        Returns:
+            None
+        """
+        # Iterate over each table in the dictionary
+        for table_name, columns in table_column_dict.items():
+            # Create a new list that contains only the column names
+            column_names = [column['name'] for column in columns]
+            # Remove all the key-value pairs from the dictionary
+            table_column_dict.clear()
+            # Add a new key-value pair to the dictionary with the table name as the key and the column name as the value
+            table_column_dict[table_name] = column_names
+
+        return table_column_dict
+  
     def __del__(self):
         self.close()
