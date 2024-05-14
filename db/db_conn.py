@@ -196,5 +196,28 @@ class DatabaseLoader:
 
         return table_column_dict
   
+    def rename_tables_for_llm_understanding(self, table_column_dict: dict):
+        """
+        This function takes a dictionary of table names and their corresponding column names as input.
+        It modifies the dictionary by adding two key-value pairs to each table entry in the dictionary.
+        The first key-value pair is a new key-value pair where the key is the original table name followed by " Table Name"
+        and the value is the original table name. The second key-value pair is a new key-value pair where the key is the
+        original table name followed by " Columns" and the value is the list of column names associated with that table.
+        
+        Parameters:
+            self (DatabaseConnection): The instance of the DatabaseConnection class.
+            table_column_dict (dict): A dictionary where the keys are table names and the values are lists of column names.
+        
+        Returns:
+            dict: A modified dictionary where each table entry now has two additional key-value pairs.
+        """
+        # Iterate over each table in the dictionary
+        for key, value in table_column_dict.items():
+            # Create new keys and values for the dictionary and add them to the current table entry
+            table_column_dict[key + " Table Name"] = key # Add a new key-value pair where the key is the original table name followed by " Table Name" and the value is the original table name
+            table_column_dict[key + " Columns"] = value # Add a new key-value pair where the key is the original table name followed by " Columns" and the value is the list of column names associated with that table
+
+        # Return the modified dictionary
+        return table_column_dict
     def __del__(self):
         self.close()
