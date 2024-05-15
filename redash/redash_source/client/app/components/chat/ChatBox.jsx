@@ -161,7 +161,7 @@ export default function ChatBox() {
     
     const query = await axios.post(saveOrCreateUrl(query_params), query_params)
 
-    console.log("The Query is :: " + query);
+    console.log("The Query is :: ", query);
 
     // Example usage:
     // const sqlQuery = `SELECT "City name", SUM("Views by Date") AS total_views FROM "Cities" GROUP BY "City name" ORDER BY total_views DESC LIMIT 10;`;
