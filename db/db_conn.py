@@ -1,5 +1,6 @@
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, MetaData, inspect, text
+from sqlalchemy.orm import sessionmaker
 import os
 # from dotenv import load_dotenv
 import sys
@@ -13,13 +14,13 @@ class DatabaseLoader:
         """
         # Load environment variables from the .env file
         # load_dotenv()
-        # postgres://redash:cKY0oBb7ye17X1ysvMIbehfkyBTvSjls@dpg-cotrfcv109ks73d3v500-a.oregon-postgres.render.com/redash_llm_db
+        # postgres://abuki:RO2Wa1UIBqV0fHU6Wu1SbYQvN2HJx0Rn@dpg-cp083no21fec73fvqci0-a.oregon-postgres.render.com/redash_llm_db_cmt5
         # Fetch database credentials from environment variables
-        self.username = 'redash' # os.getenv("DB_USERNAME")
-        self.password = 'cKY0oBb7ye17X1ysvMIbehfkyBTvSjls' # os.getenv("DB_PASSWORD")
-        self.host = 'dpg-cotrfcv109ks73d3v500-a.oregon-postgres.render.com' # os.getenv("DB_HOST")
+        self.username = 'abuki' # os.getenv("DB_USERNAME")
+        self.password = 'RO2Wa1UIBqV0fHU6Wu1SbYQvN2HJx0Rn' # os.getenv("DB_PASSWORD")
+        self.host = 'dpg-cp083no21fec73fvqci0-a.oregon-postgres.render.com' # os.getenv("DB_HOST")
         self.port = 5432 # os.getenv("DB_PORT")
-        self.database = 'redash_llm_db' # os.getenv("DB_DATABASE")
+        self.database = 'redash_llm_db_cmt5' # os.getenv("DB_DATABASE")
 
         # Check if any credentials are missing
         if None in (self.username, self.password, self.host, self.port, self.database, self.host):
@@ -105,7 +106,30 @@ class DatabaseLoader:
         if self.connection:
             self.connection.close()
             print("Disconnected from the database.")
-    
+    def drop_all_tables(self):
+        """
+        Drops all tables in the database.
+
+        This function drops all tables in the database using the connection object.
+        If the operation is successful, it prints a message indicating that all tables have been dropped.
+        If an exception occurs during the table dropping process, it prints an error message with the specific exception details.
+
+        Parameters:
+            self (DatabaseConnection): The instance of the DatabaseConnection class.
+
+        Returns:
+            None
+        """
+        try:
+            inspector = inspect(self.engine)
+            tables = inspector.get_table_names()
+            for table in tables:
+                print(f"Dropping table: {table}")
+                self.connection.execute(text(f'DROP TABLE IF EXISTS "{table}"'))
+
+        except Exception as e:
+            print(f"Error dropping tables: {str(e)}")
+
     def add_data_to_table(self, df: pd.DataFrame, table_name: str):
         """
         Adds data to a table in the database.
@@ -121,6 +145,101 @@ class DatabaseLoader:
             None
         """
         df.to_sql(table_name, self.engine, if_exists='append', index=False)
+    def get_table_column_names(self):
+        """
+        This function retrieves the names of all tables in the database and their corresponding columns.
+        It returns a dictionary where the keys are the table names and the values are lists of column
+        dictionaries. Each column dictionary contains information about the column, such as its name,
+        data type, and whether it is nullable.
 
+        Parameters:
+            self (DatabaseConnection): The instance of the DatabaseConnection class.
+
+        Returns:
+            dict: A dictionary where the keys are table names and the values are lists of column dictionaries.
+        """
+        # Initialize an empty dictionary to store the table names and their corresponding columns.
+        table_column_dict = {}
+
+        # Iterate over each table in the database.
+        for table in self.inspector.get_table_names():
+            # Retrieve the columns of the current table.
+            columns = self.inspector.get_columns(table)
+
+            # Add the table name and its corresponding columns to the dictionary.
+            table_column_dict[table] = columns
+
+        return table_column_dict
+
+
+    def clean_inspector_db(self, table_column_dict: dict):
+        """
+        This function takes a dictionary of table names and their corresponding column names as input.
+        It modifies the dictionary by removing all the key-value pairs except for the column name and 
+        renaming the key to be the table name and the value to be the column name. 
+        
+        Parameters:
+            self (DatabaseConnection): The instance of the DatabaseConnection class.
+            table_column_dict (dict): A dictionary where the keys are table names and the values are lists of column names.
+        
+        Returns:
+            None
+        """
+        # Iterate over each table in the dictionary
+        for table_name, columns in table_column_dict.items():
+            # Create a new list that contains only the column names
+            column_names = [column['name'] for column in columns]
+            # Remove all the key-value pairs from the dictionary
+            table_column_dict.clear()
+            # Add a new key-value pair to the dictionary with the table name as the key and the column name as the value
+            table_column_dict[table_name] = column_names
+
+        return table_column_dict
+  
+    def rename_tables_for_llm_understanding(self, table_column_dict: dict):
+        """
+        This function takes a dictionary of table names and their corresponding column names as input.
+        It modifies the dictionary by adding two key-value pairs to each table entry in the dictionary.
+        The first key-value pair is a new key-value pair where the key is the original table name followed by " Table Name"
+        and the value is the original table name. The second key-value pair is a new key-value pair where the key is the
+        original table name followed by " Columns" and the value is the list of column names associated with that table.
+        
+        Parameters:
+            self (DatabaseConnection): The instance of the DatabaseConnection class.
+            table_column_dict (dict): A dictionary where the keys are table names and the values are lists of column names.
+        
+        Returns:
+            dict: A modified dictionary where each table entry now has two additional key-value pairs.
+        """
+        # Iterate over each table in the dictionary
+        for key, value in table_column_dict.items():
+            # Create new keys and values for the dictionary and add them to the current table entry
+            table_column_dict[key + " Table Name"] = key # Add a new key-value pair where the key is the original table name followed by " Table Name" and the value is the original table name
+            table_column_dict[key + " Columns"] = value # Add a new key-value pair where the key is the original table name followed by " Columns" and the value is the list of column names associated with that table
+
+        # Return the modified dictionary
+        return table_column_dict
+    
+    def make_string_for_llm_understanding(self, table_column_dict: dict):
+        # Initialize an empty string to store the result
+        new_table_column_string = ""
+        
+        # Iterate over each key-value pair in the dictionary
+        for key, value in table_column_dict.items():
+            # Check if the value is a list (indicating multiple columns for a table)
+            # If it is, join the column names into a comma-separated string and append it to the result string
+            # If it's not a list, append the table name followed by its value to the result string
+            if type(value) == list:
+                # Join the column names into a comma-separated string
+                column_names_string = ', '.join(value)
+                
+                # Append the table name, the phrase 'has Columns:', the column names, and the phrase 'and' to the result string
+                new_table_column_string += f'{key} has Columns: {column_names_string} and \n'
+            else:
+                # Append the table name, the phrase 'is:', and the value to the result string
+                new_table_column_string += f'{key} is: {value}\n'
+        
+        # Return the result string
+        return new_table_column_string  
     def __del__(self):
         self.close()
